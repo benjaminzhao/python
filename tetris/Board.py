@@ -1,110 +1,74 @@
-class Board(object):
+import pyglet
 
-    STARTING_ZONE_HEIGHT = 4
-    NEXT_X = -5
-    NEXT_Y = 20
+WIDTH = 800
+HEIGHT = 600
+BOARD_X = 445
+BOARD_Y = 13
+GRID_WIDTH = 10
+GRID_HEIGHT = 20
+BLOCK_SIZE = 24
+window = pyglet.window.Window(WIDTH, HEIGHT)
+window.set_vsync(False)
 
-    def __init__(self, x, y, gridWidth, gridHeight, blockSize):
-        self.x = x
-        self.y = y
-        self.gridWidth = gridWidth
-        self.gridHeight = gridHeight
-        self.blockSize = blockSize
-        self.spawnX = int(gridWidth * 1/3)
-        self.spawnY = gridHeight
-        self.nextTetromino = Tetromino()
-        self.fallingTetromino = None
-        self.spawnTetromino()
-        self.tetrominos = []
 
-    def spawnTetromino(self):
-        self.fallingTetromino = self.nextTetromino
-        self.nextTetromino = Tetromino()
-        self.fallingTetromino.setPosition(self.spawnX, self.spawnY)
-        self.nextTetromino.setPosition(Board.NEXT_X, Board.NEXT_Y)
 
-    def commandFallingTetromino(self, command):
-        self.fallingTetromino.command(command)
-        if not self.isValidPosition():
-            self.fallingTetromino.undoCommand(command)
+MIN_LABEL_Y = 50
+MAX_LBAEL_Y = HEIGHT - 50
 
-    def isValidPosition(self):
-        nonfallingBlockCoords = []
-        for tetromino in self.tetrominos:
-            nonFallingBlockCoords.extend(tetromino.blockBoardCoords)
-        for coord in self.fallingTetromino.blockBoardCoords:
-            outOfBounds = coord[0]<0 or coord[0]>=self.gridWidth or coord[1]<0
-            overlapping = coord in nonFallingBlockCoords
-            if outOfBounds or overlapping:
-                return False
-        return True
+MIN_LABEL_X = 50
+MAX_LBAEL_X = WIDTH - 50
 
-    def findFullRow(self):
-        nonFallingBlockCoords = []
-        for tetromino in self.tetrominos:
-            nonFallingBlockCoords.extend(tetromino.blockBoardCoords)    
+hellolabel = pyglet.text.Label('hello world!', font_size=14, x=MIN_LABEL_X, y=MIN_LABEL_Y)
+goodbylabel = pyglet.text.Label('Goodby world!', font_size=14, x=MIN_LABEL_X, y=MIN_LABEL_Y)
+label = hellolabel
+backgroundImage = pyglet.resource.image('bg.png')
 
-        rowCounts = {}
-        for i in range(self.gridHeight+Board.STARTING_ZONE_HEIGHT):
-            rowCounts[i] = 0
-        for coord in nonFallingBlockCoords:
-            rowCounts[coord[1]] += 1
-
-        fullRows = []
-        for row in rowCounts:
-            if rowCounts[row] == self.gridWidth:
-                fullRows.append(row)
-        return fullRows
-
-    def clearRow(self, gridRow):
-        tetromino = []
-        for tetromino in self.tetromino:
-            if tetromino.clearRowAndAdjustDown(gridRow):
-                tetrominos.append(tetromino)
-        self.tetrominos = tetrominos
-
-    def clearRows(self, gridRows):
-        gridRows.sort(reverse=True)
-        for row in gridRows:
-            self.clearRow(row)
-
-    def updateTick(self):
-        numClearRows = 0
-        gameLost = False
-        self.fallingTetromino,command(Input.MOVE_DOWN)
-        if not self.isValidPosition():
-            self.fallingTetromino.undoCommand(Input.MOVE_DOWN)
-            self.tetrominos.append(self.fallingTetromino)
-            fullRows = self.findFullRows()
-            self.clearRows(fullRows)
-            gameLost = self.isInStartZone(self.fallingTetromino)
-        if not gameLost:
-            self.spawnTetromino()
-        numClearRows = len(fullRows)
-        return(numClearRows, gameLost)
-
-    def isInStartZone(self, tetromino):
-        for coords in tetromino.blockBoardCoords:
-            if coords[1]>=self.gridHeight:
-                return True
-        return False
-
-    def gridCoordsToScreenCoords(self, coords):
-        screenCoords = []
-        for coord in coords:
-            coord = (self.x+coord[0]*self.blockSize, self.y+coord[1]*self.blockSize)
-            screenCoords.append(coord)
-        return screenCoords
-
-    def draw(self):
-        for tetromino in self.tetrominos:
-            screenCoords = self.gridCoordsToScreenCoords(tetromino.blockBoardCoords)
-            tetromino.draw(screenCoords)
-
-        screenCoords = self.gridCoordsToScreenCoords(self.fallingTetromino.blockBoardCoords)
-        self.fallingTetromino.draw(screenCoords)
-
-        screenCoords = self.gridCoordsToScreenCoords(self.nextTetromino.blockBoardCoords)
-        self.nextTetromino.draw(screenCoords)
-           
+@window.event
+def on_key_press(symbol, modifiers):
+    global label
+    global MIN_LABEL_Y
+    global MAX_LABEL_Y
+    global MIN_LABEL_X
+    global MAX_LBAEL_X
+    
+    if symbol == pyglet.window.key.SPACE:
+        if label == hellolabel:
+            label = goodbylabel
+        else:
+            label = hellolabel
+    elif symbol == pyglet.window.key.UP:
+        label.y += 1
+        if label.y > MAX_LABEL_Y:
+            label.y = MIN_LABEL_Y
             
+    elif symbol == pyglet.window.key.DOWN:
+        label.y -= 1
+        if label.y < MIN_LABEL_Y:
+            label.y = MAX_LABEL_Y
+            
+    elif symbol == pyglet.window.key.LEFT:
+        label.x -= 1
+        if label.x < MIN_LABEL_X:
+            label.x = MAX_LABEL_X
+            
+    elif symbol == pyglet.window.key.RIGHT:
+        label.x += 1
+        if label.x > MAX_LABEL_X:
+            label.x = MIN_LABEL_X
+@window.event
+def on_draw():
+    ##renderScreen()
+    window.clear()
+    backgroundImage.blit(0,0)
+    label.draw()
+def update(dt):
+    label.y += 1
+    if label.y > MAX_LABEL_Y:
+        label.y = MIN_LABEL_Y
+##    updateState()
+##    renderSound()
+
+
+##pyglet.clock.schedule.interval(update, 1/60.0)
+
+pyglet.app.run()

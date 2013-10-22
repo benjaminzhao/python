@@ -121,13 +121,13 @@ class Tetromino(object):
         self.blockBoardCoords = self.calcBlockBoardCoords()
 
     def rotateClockwise(self):
-        self.oreitation = Tetromino.CLOCKWISE_ROTATIONS[self.oreitation]
+        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
         self.blockBoardCoords = self.self.calcBlockBoardCoords()
 
     def rotateCounterClockwise(self):
-        self.oreitation = Tetromino.CLOCKWISE_ROTATIONS[self.oreitation]
-        self.oreitation = Tetromino.CLOCKWISE_ROTATIONS[self.oreitation]
-        self.oreitation = Tetromino.CLOCKWISE_ROTATIONS[self.oreitation]
+        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
+        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
+        self.orientation = Tetromino.CLOCKWISE_ROTATIONS[self.orientation]
         self.blockBoardCoords = self.self.calcBlockBoardCoords()
 
     def command(self, command):
@@ -275,26 +275,122 @@ class Board(object):
         screenCoords = self.gridCoordsToScreenCoords(self.nextTetromino.blockBoardCoords)
         self.nextTetromino.draw(screenCoords)
            
-            
+class InfoDisplay(object):
 
+    ROWS_CLEARED_X = 70
+    ROWS_CLEARED_Y = 550
 
+    def __init__(self, window):
+        self.rowsClearLabel = pyglet.text.Label('Rows Cleared: 0',
+                                                font_size=14,
+                                                x=InfoDisplay.ROWS.CLEARED_X,
+                                                y=InfoDisplay.ROWS_CLEARED_Y)
+        self.pausedLabel = pyglet.text.Label('PAUSED',
+                                             font_size=32,
+                                             x=window.width//2,
+                                             y=window.height//2,
+                                             anchor_x='center',
+                                             anchor_y='center')
+        self.gameoverLabel = pyglet.text.Label('GAME OVER',
+                                               font_size=32,
+                                               x=window.width//2,
+                                               y=window.height//2,
+                                               anchor_x='center',
+                                               anchor_y='center')
+        self.showPausedLabel = False
+        self.showGameoverLabel = False
 
+    def setRowsCleared(self, numRowsCleared):
+        self.rowsClearedLabel.text = 'Rows Cleared: '+str(numRowsCleared)
 
+    def draw(self):
+        self.rowsClearedLabel.draw()
+        if self.showPausedLabel:
+            self.pausedLabel.draw()
+        if self.showGameoverLabel:
+            self.gameoverLabel.draw()
+    
+class Input(object):
+    TOGGLE_PAUSE, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, ROTATE_CLOCKWISE = range(5)
 
+    def __init__(self):
+        self.action = None
 
+    def processKeypress(self, symbol, nodifiers):
+        if symbol == pyglet.window.key.SPACE:
+            self.action = Input.TOGGLE_PAUSE
 
+    def processTextMotion(self, motion):
+        if motion == pyglet.window.key.MOTION_LEFT:
+            self.action = Input.MOVE_LEFT
+        if motion == pyglet.window.key.MOTION_RIGHT:
+            self.action = Input.MOVE_RIGHT
+        if motion == pyglet.window.key.MOTION_UP:
+            self.action = Input.MOVE_UP
+        if motion == pyglet.window.key.MOTION_DOWN:
+            self.action = Input.MOVE_DOWN
 
+    def consume(self):
+        action = self.action
+        self.action = None
+        return action
 
+class GameTick(object):
 
+    def __init__(self, tickOnFirstCall=False):
+        self.tick = tickOnFirstCall
+        self.started = tickOnFirstCall
 
+    def isTick(self, nextTickTime):
+        def setTick(dt):
+            self.tick = True
+        if not self.started:
+            self.started = True
+            pyglet.clock.schedule_once(setTick, nextTickTime)
+            return False
+        elif self.tick:
+            self.tick = False
+            pyglet.clock.schedule_once(setTick,nextTickTime)
+            return True
+        else:
+            return False
 
+class Game(object):
 
+    def __init__(self, board, infoDisplay, input, backgroumdImage):
+        self.board = board
+        self.infoDisplay = infoDisplay
+        self.input = Input
+        self.backgroundImage = backgroundImage
+        self.paused = False
+        self.lost = False
+        self.numRowsCleared = 0
+        self.tickSpeed = 0.6
+        self.ticker = GameTick()
 
+    def addRowsCleared(self, rowsCleared):
+        self.numRowsCleared += rowsCleared
+        self.infoDisplay.setRowsCleared(self.numRowsCleared)
 
+    def togglePause(self):
+        self.paused = not self.paused
+        self.infoDisplay.showPausedLabel = self.paused
 
+    def update(self):
+        if self.lost:
+            self.infoDisplay.showGameoverLabel = True
+        else:
+            command = self.input.consume()
+            if command == Input.TOGGLE_PAUSE:
+                self.togglePause()
+            if not self.paused:
+                if command and command != Input.YOGGLE_PAUSE:
+                    self.board.commandFallingTetromino(command)
+                if self.ticker.isTick(self.tickSpeed):
+                    self.rowsCleared, self.lost = self.board.updateTick()
+                    self.addRowsCleared(self.rowsCleared)
 
-
-
-
-
-
+    def draw(self):
+        self.backgroundImage.blit(0,0)
+        self.board.draw()
+        self.infoDisplay.draw()

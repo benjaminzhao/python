@@ -42,11 +42,9 @@ def on_draw():
 
 def update(dt):
     game.update()
-
-    
+   
 ##    updateState()
 ##    renderSound()
-
 
 pyglet.clock.schedule.interval(update, 1/60.0)
 
