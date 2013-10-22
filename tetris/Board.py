@@ -69,6 +69,6 @@ def update(dt):
 ##    renderSound()
 
 
-pyglet.clock.schedule.interval(update, 1/60.0)
+##pyglet.clock.schedule.interval(update, 1/60.0)
 
 pyglet.app.run()
