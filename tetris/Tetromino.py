@@ -80,5 +80,9 @@ class Tetromino(object):
         self.blockBoardCoords = newBlockBoardCoords
         return len(self.blockBoardCoords) > 0
 
+    def draw(self, screenCoords):
+        image = self.tetrominoType.blockImage
+        for coords in screenCoords:
+            image.blit(coords[0], coords[1])
 
 

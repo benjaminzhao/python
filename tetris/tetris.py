@@ -16,8 +16,8 @@ window.set_vsync(False)
 
 ## load resource ##
 ##loadResources()
-backgroundImage = pyglet.resource.image('')
-blockImage = pyglet.resource.image('')
+backgroundImage = pyglet.resource.image('bg.png')
+blockImage = pyglet.resource.image('block.png')
 gametypes.TetrominoType.classInit(blockImage, BLOCK_SIZE)
 
 ## init game state ##
@@ -29,18 +29,18 @@ game = gametypes.Game(board, infoDisplay, input, backgroundImage)
 
 
 @window.event
-def on_key_press(symbol, modifiers)
+def on_key_press(symbol, modifiers):
     input.processKeypress(symbol, modifiers)
 
 @window.event
-def on_text_motion(motion)
+def on_text_motion(motion):
     input.processTextMotion(motion)
 
 @window.event
-def on_draw()
+def on_draw():
     game.draw()
 
-def update(dt)
+def update(dt):
     game.update()
 
     
